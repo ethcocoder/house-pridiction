@@ -1,0 +1,40 @@
+/* Elite Housing Predictor - Custom Styling */
+
+:root {
+    --primary-color: #4CAF50;
+    --secondary-color: #9b59b6;
+    --bg-color: #0e1117;
+    --card-bg: #1e1e1e;
+    --text-color: #ffffff;
+}
+
+.stApp {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+.prediction-card {
+    padding: 30px;
+    background-color: var(--card-bg);
+    border-radius: 20px;
+    border: 2px solid #333;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    transition: transform 0.3s ease;
+}
+
+.prediction-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary-color);
+}
+
+.prediction-value {
+    font-size: 3.5rem;
+    color: var(--primary-color);
+    font-weight: 800;
+    margin: 10px 0;
+}
+
+.elite-glow {
+    text-shadow: 0 0 15px var(--secondary-color);
+}
