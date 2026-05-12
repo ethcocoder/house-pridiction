@@ -55,9 +55,9 @@ class XGBoostModel(ModelInterface):
         }
         
         random_search = RandomizedSearchCV(
-            pipeline, param_distributions=param_dist, n_iter=10, 
-            cv=3, scoring='neg_mean_squared_error', verbose=1, 
-            random_state=ModelConfig.RANDOM_STATE, n_jobs=-1
+            pipeline, param_distributions=param_dist, n_iter=5, 
+            cv=3, scoring='neg_mean_squared_error', verbose=2, 
+            random_state=ModelConfig.RANDOM_STATE, n_jobs=1
         )
         
         random_search.fit(X, y)

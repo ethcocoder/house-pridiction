@@ -29,6 +29,6 @@ class ModelConfig:
         'max_depth': 5,
         'subsample': 0.8,
         'colsample_bytree': 0.8,
-        'n_jobs': -1
+        'n_jobs': 1
     })
 
