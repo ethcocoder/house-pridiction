@@ -91,3 +91,18 @@ class XGBoostModel(ModelInterface):
             raise FileNotFoundError(f"Model file not found: {path}")
         self.model = joblib.load(path)
         logger.info(f"Model loaded from {path}")
+
+if __name__ == "__main__":
+    # 1. Load Processed Data
+    if not os.path.exists(PathConfig.PROCESSED_DATA):
+        print(f"Error: Processed data not found at {PathConfig.PROCESSED_DATA}. Run 'python -m src.data.make_dataset' first.")
+    else:
+        df = pd.read_csv(PathConfig.PROCESSED_DATA)
+        X = df.drop(columns=[ModelConfig.TARGET_COL])
+        y = np.log1p(df[ModelConfig.TARGET_COL])
+        
+        # 2. Train and Save
+        model = XGBoostModel()
+        model.train(X, y)
+        model.save(os.path.join(PathConfig.MODELS_DIR, "model.pkl"))
+
