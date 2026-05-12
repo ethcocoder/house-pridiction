@@ -2,9 +2,12 @@ from dataclasses import dataclass, field
 from typing import List, Dict
 import os
 
+# Detect Project Root (Two levels up from src/config.py)
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 @dataclass(frozen=True)
 class PathConfig:
-    ROOT_DIR: str = "d:/house"
+    ROOT_DIR: str = ROOT_DIR
     DATA_DIR: str = os.path.join(ROOT_DIR, "data")
     RAW_DATA: str = os.path.join(DATA_DIR, "raw", "massive_housing_data.csv")
     PROCESSED_DATA: str = os.path.join(DATA_DIR, "processed", "housing_cleaned.csv")
