@@ -51,9 +51,17 @@ class BaselineModel(ModelInterface):
     def save(self, path: str) -> None:
         if self.model is None:
             raise ValueError("Cannot save an untrained model.")
+        
+        # Save full pipeline (model.pkl)
         os.makedirs(os.path.dirname(path), exist_ok=True)
         joblib.dump(self.model, path)
-        logger.info(f"Model saved to {path}")
+        logger.info(f"Baseline pipeline saved to {path}")
+        
+        # Save preprocessor separately (preprocessing.pkl) as per documentation
+        preprocessor = self.model.named_steps['preprocessor']
+        prep_path = os.path.join(os.path.dirname(path), "preprocessing.pkl")
+        joblib.dump(preprocessor, prep_path)
+        logger.info(f"Baseline preprocessor saved to {prep_path}")
 
     def load(self, path: str) -> None:
         if not os.path.exists(path):
