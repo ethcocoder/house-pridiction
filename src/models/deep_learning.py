@@ -90,7 +90,7 @@ class DeepLearningModel(ModelInterface):
         scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5)
         
         logger.info(f"Starting Neural Network training on {device}...")
-        epochs = 100
+        epochs = 10
         best_loss = float('inf')
         
         pbar = tqdm(range(epochs), desc="Training Epochs")
@@ -122,7 +122,7 @@ class DeepLearningModel(ModelInterface):
             
             pbar.set_postfix({'Val_Loss': f'{avg_val_loss:.4f}', 'Best': f'{best_loss:.4f}'})
             
-            if (epoch + 1) % 5 == 0:
+            if (epoch + 1) % 2 == 0:
                 logger.info(f"Epoch [{epoch+1}/{epochs}], Val Loss: {avg_val_loss:.4f}")
 
         if self.best_state:
