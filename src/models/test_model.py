@@ -1,8 +1,9 @@
 import pandas as pd
 import numpy as np
 import os
+import joblib
 from src.models.xgboost_model import XGBoostModel
-from src.config import PathConfig
+from src.config import PathConfig, ModelConfig
 
 def test_inference():
     """Test the saved model artifacts by running a sample prediction."""
@@ -20,16 +21,29 @@ def test_inference():
     model_wrapper.load(model_path)
     print(f"✅ Model successfully loaded from {model_path}")
     
-    # 3. Create a dummy sample (matching the feature space)
-    # Note: In a real scenario, you'd load a sample from data/processed/
-    sample_data = pd.read_csv(PathConfig.PROCESSED_DATA).head(1).drop(columns=['SalePrice'])
+    # 3. Create a sample for prediction
+    # We load one row from the processed data
+    if not os.path.exists(PathConfig.PROCESSED_DATA):
+        print(f"❌ Error: Processed data not found. Please run make_dataset first.")
+        return
+        
+    data = pd.read_csv(PathConfig.PROCESSED_DATA)
+    sample_data = data.drop(columns=[ModelConfig.TARGET_COL]).head(1)
+    actual_price = data[ModelConfig.TARGET_COL].iloc[0]
     
     # 4. Run Prediction
-    log_prediction = model_wrapper.predict(sample_data)
-    final_prediction = np.expm1(log_prediction)[0]
+    log_prediction = model_wrapper.predict(sample_data)[0]
+    
+    # Check if we need to inverse the log transform
+    if ModelConfig.LOG_TRANSFORM:
+        final_prediction = np.expm1(log_prediction)
+    else:
+        final_prediction = log_prediction
     
     print(f"\n📈 Test Prediction Result:")
     print(f"   - Predicted Sale Price: ${final_prediction:,.2f}")
+    # Note: If it was log-transformed, the raw output was around 12.x
+    print(f"   - Raw Model Output: {log_prediction:.4f}")
     print(f"   - Status: PASS")
 
 if __name__ == "__main__":
