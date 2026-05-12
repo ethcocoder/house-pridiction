@@ -18,7 +18,7 @@ class PathConfig:
 @dataclass
 class ModelConfig:
     TARGET_COL: str = "SalePrice"
-    LOG_TRANSFORM: bool = True
+    LOG_TRANSFORM: bool = False
     RANDOM_STATE: int = 42
     TEST_SIZE: float = 0.2
     

@@ -99,10 +99,12 @@ if __name__ == "__main__":
     else:
         df = pd.read_csv(PathConfig.PROCESSED_DATA)
         X = df.drop(columns=[ModelConfig.TARGET_COL])
-        y = np.log1p(df[ModelConfig.TARGET_COL])
+        if ModelConfig.LOG_TRANSFORM:
+            y = np.log1p(df[ModelConfig.TARGET_COL])
+        else:
+            y = df[ModelConfig.TARGET_COL]
         
         # 2. Train and Save
         model = XGBoostModel()
         model.train(X, y)
         model.save(os.path.join(PathConfig.MODELS_DIR, "model.pkl"))
-
