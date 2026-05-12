@@ -34,8 +34,9 @@ def test_inference():
     # 4. Run Prediction
     log_prediction = model_wrapper.predict(sample_data)[0]
     
-    # Check if we need to inverse the log transform
-    if ModelConfig.LOG_TRANSFORM:
+    # The dataset itself is log-transformed (~12.x), so we must always inverse it
+    # to see dollar values, even if the config's auto-transform is off.
+    if log_prediction < 30: 
         final_prediction = np.expm1(log_prediction)
     else:
         final_prediction = log_prediction
