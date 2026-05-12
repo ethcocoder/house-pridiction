@@ -5,47 +5,49 @@ import joblib
 from src.models.xgboost_model import XGBoostModel
 from src.config import PathConfig, ModelConfig
 
-def test_inference():
-    """Test the saved model artifacts by running a sample prediction."""
-    print("🚀 Initializing Model Inference Test...")
+def test_inference(num_samples=5):
+    """Test the saved model artifacts by running multiple sample predictions."""
+    print(f"🚀 Initializing Multi-Scenario Inference Test ({num_samples} samples)...")
     
-    # 1. Initialize Model Class
+    # 1. Initialize and Load Model
     model_wrapper = XGBoostModel()
-    
-    # 2. Load the saved pipeline
     model_path = os.path.join(PathConfig.MODELS_DIR, "model.pkl")
     if not os.path.exists(model_path):
-        print(f"❌ Error: Model file not found at {model_path}. Please train the model first.")
+        print(f"❌ Error: Model file not found. Please train the model first.")
         return
-        
     model_wrapper.load(model_path)
-    print(f"✅ Model successfully loaded from {model_path}")
     
-    # 3. Create a sample for prediction
-    # We load one row from the processed data
+    # 2. Load Data
     if not os.path.exists(PathConfig.PROCESSED_DATA):
-        print(f"❌ Error: Processed data not found. Please run make_dataset first.")
+        print(f"❌ Error: Processed data not found.")
         return
-        
     data = pd.read_csv(PathConfig.PROCESSED_DATA)
-    sample_data = data.drop(columns=[ModelConfig.TARGET_COL]).head(1)
-    actual_price = data[ModelConfig.TARGET_COL].iloc[0]
     
-    # 4. Run Prediction
-    log_prediction = model_wrapper.predict(sample_data)[0]
+    # 3. Run Multi-Test
+    print("\n" + "="*80)
+    print(f"{'Sample':<8} | {'Predicted ($)':<15} | {'Actual ($)':<15} | {'Error (%)':<10}")
+    print("-" * 80)
     
-    # The dataset itself is log-transformed (~12.x), so we must always inverse it
-    # to see dollar values, even if the config's auto-transform is off.
-    if log_prediction < 30: 
-        final_prediction = np.expm1(log_prediction)
-    else:
-        final_prediction = log_prediction
+    samples = data.sample(num_samples, random_state=42)
     
-    print(f"\n📈 Test Prediction Result:")
-    print(f"   - Predicted Sale Price: ${final_prediction:,.2f}")
-    # Note: If it was log-transformed, the raw output was around 12.x
-    print(f"   - Raw Model Output: {log_prediction:.4f}")
-    print(f"   - Status: PASS")
+    for i, (idx, row) in enumerate(samples.iterrows()):
+        X_sample = pd.DataFrame([row.drop(ModelConfig.TARGET_COL)])
+        y_actual_log = row[ModelConfig.TARGET_COL]
+        
+        # Predict
+        y_pred_log = model_wrapper.predict(X_sample)[0]
+        
+        # Convert to Dollars
+        y_pred_dollar = np.expm1(y_pred_log)
+        y_actual_dollar = np.expm1(y_actual_log)
+        
+        # Calculate Error
+        error_pct = abs(y_pred_dollar - y_actual_dollar) / y_actual_dollar * 100
+        
+        print(f"#{i+1:<7} | ${y_pred_dollar:13,.2f} | ${y_actual_dollar:13,.2f} | {error_pct:8.2f}%")
+    
+    print("="*80)
+    print("✅ Multi-scenario test complete. Status: PASS")
 
 if __name__ == "__main__":
-    test_inference()
+    test_inference(num_samples=5)
