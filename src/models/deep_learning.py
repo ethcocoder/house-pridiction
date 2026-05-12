@@ -49,6 +49,11 @@ class HousingMLP(nn.Module):
     def forward(self, x):
         return self.network(x)
 
+try:
+    from tqdm import tqdm
+except ImportError:
+    tqdm = lambda x, **kwargs: x
+
 class DeepLearningModel(ModelInterface):
     """Professional Deep Learning wrapper implementing the ModelInterface."""
     
@@ -56,6 +61,7 @@ class DeepLearningModel(ModelInterface):
         self.model = None
         self.preprocessor = None
         self.input_size = None
+        self.best_state = None
 
     def _prepare_data(self, X: pd.DataFrame):
         numeric_features = X.select_dtypes(include=['int64', 'float64']).columns
@@ -75,26 +81,29 @@ class DeepLearningModel(ModelInterface):
         
         X_train, X_val, y_train, y_val = train_test_split(X_processed, y.values, test_size=0.2, random_state=ModelConfig.RANDOM_STATE)
         
-        train_loader = DataLoader(HousingDataset(X_train, y_train), batch_size=32, shuffle=True)
-        val_loader = DataLoader(HousingDataset(X_val, y_val), batch_size=32, shuffle=False)
+        train_loader = DataLoader(HousingDataset(X_train, y_train), batch_size=64, shuffle=True)
+        val_loader = DataLoader(HousingDataset(X_val, y_val), batch_size=64, shuffle=False)
         
         self.model = HousingMLP(self.input_size).to(device)
         criterion = nn.MSELoss()
         optimizer = optim.Adam(self.model.parameters(), lr=0.001, weight_decay=1e-5)
-        scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=10)
+        scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5)
         
         logger.info(f"Starting Neural Network training on {device}...")
         epochs = 100
         best_loss = float('inf')
         
-        for epoch in range(epochs):
+        pbar = tqdm(range(epochs), desc="Training Epochs")
+        for epoch in pbar:
             self.model.train()
+            epoch_loss = 0
             for batch_X, batch_y in train_loader:
                 batch_X, batch_y = batch_X.to(device), batch_y.to(device)
                 optimizer.zero_grad()
                 loss = criterion(self.model(batch_X), batch_y)
                 loss.backward()
                 optimizer.step()
+                epoch_loss += loss.item()
             
             # Validation
             self.model.eval()
@@ -109,14 +118,16 @@ class DeepLearningModel(ModelInterface):
             
             if avg_val_loss < best_loss:
                 best_loss = avg_val_loss
-                # We keep the best weights in memory
                 self.best_state = self.model.state_dict()
-                
-            if (epoch + 1) % 20 == 0:
+            
+            pbar.set_postfix({'Val_Loss': f'{avg_val_loss:.4f}', 'Best': f'{best_loss:.4f}'})
+            
+            if (epoch + 1) % 5 == 0:
                 logger.info(f"Epoch [{epoch+1}/{epochs}], Val Loss: {avg_val_loss:.4f}")
 
-        self.model.load_state_dict(self.best_state)
-        logger.info("Training complete. Best validation loss achieved.")
+        if self.best_state:
+            self.model.load_state_dict(self.best_state)
+        logger.info("Training complete. Best weights loaded.")
 
     def predict(self, X: pd.DataFrame) -> np.ndarray:
         if self.model is None or self.preprocessor is None:
