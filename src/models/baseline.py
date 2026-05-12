@@ -8,7 +8,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LinearRegression
 from src.core.base import ModelInterface
 from src.data.utils import setup_logger
-from src.config import PathConfig
+from src.config import PathConfig, ModelConfig
 
 logger = setup_logger("BaselineModel", log_file=os.path.join(PathConfig.LOGS_DIR, "modeling.log") if os.path.exists(PathConfig.LOGS_DIR) else "modeling.log")
 
