@@ -6,7 +6,7 @@ import os
 class PathConfig:
     ROOT_DIR: str = "d:/house"
     DATA_DIR: str = os.path.join(ROOT_DIR, "data")
-    RAW_DATA: str = os.path.join(DATA_DIR, "raw", "housing.csv")
+    RAW_DATA: str = os.path.join(DATA_DIR, "raw", "massive_housing_data.csv")
     PROCESSED_DATA: str = os.path.join(DATA_DIR, "processed", "housing_cleaned.csv")
     MODELS_DIR: str = os.path.join(ROOT_DIR, "models")
     LOGS_DIR: str = os.path.join(ROOT_DIR, "logs")
